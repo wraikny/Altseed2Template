@@ -16,7 +16,7 @@ jobs:
         os: [windows-latest, macOS-latest]
         include:
           - os: windows-latest
-            target: publish.win
+            publish-target: publish.win
             dist-target: dist.win
           - os: macOS-latest
             publish-target: publish.osx
@@ -63,7 +63,7 @@ jobs:
 
     - name: Build for Publish
       if: startsWith( github.ref, 'refs/tags/' )
-      run: dotnet fake build -t ${{ matrix.publis-target }}
+      run: dotnet fake build -t ${{ matrix.publish-target }}
 
     - name: Generate LICENSES
       if: startsWith( github.ref, 'refs/tags/' )
