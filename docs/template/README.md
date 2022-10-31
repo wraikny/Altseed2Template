@@ -19,7 +19,7 @@ dotnet tool restore
 
 ## ビルドコマンド
 
-- [FAKE](/docs/fake.md)
+- [FAKE](./fake.md)
 
 ## CI
 

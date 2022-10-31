@@ -6,4 +6,4 @@
 
 Altseed2 向けプロジェクトテンプレート。  
 
-[ドキュメント](docs)
+[ドキュメント](docs/template)
