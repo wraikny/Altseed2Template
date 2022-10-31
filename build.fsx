@@ -188,6 +188,9 @@ Target.create
   (fun _ ->
     File.checkExists Params.Resources.PackagePath
 
+    if not (System.IO.Directory.Exists "publish/licenses") then
+      Target.run 1 "LICENSES" []
+
     let tempDirToZip = $"publish/temp/win-x64/%s{Params.ProjectName}"
 
     let targetZipName = $"publish/output/%s{Params.Dist.WindowsZipName}"
@@ -215,9 +218,10 @@ Target.create
 Target.create
   "Dist.osx"
   (fun _ ->
-    if not
-       <| File.exists Params.Resources.PackagePath then
-      failwithf "リソースパッケージ '%s' が見つかりません" Params.Resources.PackagePath
+    File.checkExists Params.Resources.PackagePath
+
+    if not (System.IO.Directory.Exists "publish/licenses") then
+      Target.run 1 "LICENSES" []
 
     let tempDirToDmg = $"publish/temp/osx-x64/%s{Params.ProjectName}"
 
