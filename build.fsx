@@ -192,19 +192,24 @@ Target.create
 
     let targetZipName = $"publish/output/%s{Params.Dist.WindowsZipName}"
 
-    // clean
-    File.delete targetZipName
-    Directory.delete tempDirToZip
+    Trace.tracefn "Cleaning"
+    do
+      File.delete targetZipName
+      Directory.delete tempDirToZip
 
-    Directory.ensure tempDirToZip
-    Directory.ensure "publish/output"
+    Trace.tracefn "Ensuring"
+    do
+      Directory.ensure tempDirToZip
+      Directory.ensure "publish/output"
 
-    Shell.cp_r $"dist/contents" $"%s{tempDirToZip}/"
+    Trace.tracefn "Copying files"
+    do
+      Shell.cp_r $"dist/contents" $"%s{tempDirToZip}/"
+      Shell.cp_r "publish/licenses" $"%s{tempDirToZip}/licenses"
+      Shell.cp_r (runtimeToPubDir "win-x64") tempDirToZip
 
-    Shell.cp_r "publish/licenses" $"%s{tempDirToZip}/licenses"
-    Shell.cp_r (runtimeToPubDir "win-x64") tempDirToZip
-
-    Zip.zipDirectory tempDirToZip targetZipName
+    Trace.tracefn "Creating zip"
+    do Zip.zipDirectory tempDirToZip targetZipName
   )
 
 Target.create
@@ -216,45 +221,50 @@ Target.create
 
     let tempDirToDmg = $"publish/temp/osx-x64/%s{Params.ProjectName}"
 
-    let tempDirToApp = $"%s{tempDirToDmg}/%s{Params.ProjectName}"
+    let tempDirToApp = $"%s{tempDirToDmg}/%s{Params.ProjectName}.app"
     let scriptDir = $"%s{tempDirToApp}/Contents/MacOS"
     let resourceDir = $"%s{tempDirToApp}/Contents/Resources"
     let scriptPath = $"%s{scriptDir}/script.sh"
 
     let targetDmgName = $"publish/output/%s{Params.Dist.MacOSDmgName}"
 
-    // clean
-    Directory.delete tempDirToApp
-    Directory.delete tempDirToDmg
-    File.delete targetDmgName
+    Trace.tracefn "Cleaning"
+    do
+      Directory.delete tempDirToApp
+      Directory.delete tempDirToDmg
+      File.delete targetDmgName
 
-    Directory.ensure tempDirToApp
-    Directory.ensure "publish/output"
+    Trace.tracefn "Ensuring"
+    do
+      Directory.ensure tempDirToApp
+      Directory.ensure "publish/output"
 
-    Shell.cp_r $"dist/contents" $"%s{tempDirToDmg}/"
-    Shell.cp_r "publish/licenses" $"%s{resourceDir}/licenses"
+    Trace.tracefn "Copying files"
+    do
+      Shell.cp_r $"dist/contents" $"%s{tempDirToDmg}/"
+      Shell.cp_r "publish/licenses" $"%s{resourceDir}/licenses"
+      Shell.cp_r "dist/App" tempDirToApp
 
-    Shell.cp_r "dist/App" tempDirToApp
+    Trace.tracefn "Creating script.sh"
+    do
+      if not <| File.exists scriptPath then
+        File.create scriptPath
 
-    if not <| File.exists scriptPath then
-      File.create scriptPath
-
-    $"""#!/bin/bash
+      $"""#!/bin/bash
 cd `dirname $0`
-$"./%s{Params.AssemblyName}
+./%s{Params.AssemblyName}
 """
-    |> File.writeString false scriptPath
+      |> File.writeString false scriptPath
 
-    Shell.cp_r (runtimeToPubDir "osx-x64") scriptDir
+      Shell.cp_r (runtimeToPubDir "osx-x64") scriptDir
 
-    shell None "chmod" "+x %s/%s" scriptDir Params.AssemblyName
-    shell None "chmod" "+x %s" scriptPath
+    Trace.tracefn "Changing mode"
+    do
+      shell None "chmod" "+x %s/%s" scriptDir Params.AssemblyName
+      shell None "chmod" "+x %s" scriptPath
 
-    let appPath = tempDirToApp + ".app"
-
-    Shell.mv tempDirToApp appPath
-
-    shell None "hdiutil" "create %s -volname \"%s\" -srcfolder \"%s\"" targetDmgName Params.ProjectName tempDirToDmg
+    Trace.tracefn "Creating dmg"
+    do shell None "hdiutil" "create %s -volname \"%s\" -srcfolder \"%s\"" targetDmgName Params.ProjectName tempDirToDmg
   )
 
 
