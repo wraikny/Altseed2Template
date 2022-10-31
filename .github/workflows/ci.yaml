@@ -5,22 +5,13 @@ on:
     branches:
       - master
       - workflows
-    tags:
-      - '*'
   pull_request:
 
 jobs:
   build:
     strategy:
       matrix:
-        os: [windows-latest, macOS-latest]
-        include:
-          - os: windows-latest
-            publish-target: publish.win
-            dist-target: dist.win
-          - os: macOS-latest
-            publish-target: publish.osx
-            dist-target: dist.osx
+        os: [windows-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -50,29 +41,3 @@ jobs:
 
     - name: Build (Debug)
       run: dotnet build -c Debug
-
-    - name: Get Resources package
-      if: startsWith( github.ref, 'refs/tags/' )
-      run: dotnet fake build -t resources.ci
-
-    - name: Build for Publish
-      if: startsWith( github.ref, 'refs/tags/' )
-      run: dotnet fake build -t ${{ matrix.publish-target }}
-
-    - name: Generate LICENSES
-      if: startsWith( github.ref, 'refs/tags/' )
-      run: dotnet fake build -t licenses
-
-    - name: Dist
-      if: startsWith( github.ref, 'refs/tags/' )
-      run: dotnet fake build -t ${{ matrix.dist-target }}
-
-    - name: Release
-      if: startsWith( github.ref, 'refs/tags/' )
-      uses: softprops/action-gh-release@v1
-      with:
-        files: publish/output/*
-        prerelease: ${{ contains(github.ref, 'beta') }}
-        draft: true
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

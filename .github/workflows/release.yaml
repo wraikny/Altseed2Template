@@ -1,0 +1,63 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        os: [windows-latest, macOS-latest]
+        include:
+          - os: windows-latest
+            publish-target: publish.win
+            dist-target: dist.win
+          - os: macOS-latest
+            publish-target: publish.osx
+            dist-target: dist.osx
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        submodules: recursive
+
+    - uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 6.0.x
+
+    - uses: actions/cache@v3
+      with:
+        path: ~/.nuget/packages
+        key: nuget-${{ hashFiles('**/packages.lock.json', 'build.fsx.lock') }}
+        restore-keys: nuget-
+
+    - name: Restore tool
+      run: dotnet tool restore
+
+    - name: Restore fake
+      run: dotnet fake build -t Nothing
+
+    - name: Get Resources package
+      run: dotnet fake build -t resources.ci
+
+    - name: Build for Publish
+      run: dotnet fake build -t ${{ matrix.publish-target }}
+
+    - name: Generate LICENSES
+      run: dotnet fake build -t licenses
+
+    - name: Dist
+      run: dotnet fake build -t ${{ matrix.dist-target }}
+
+    - name: Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: publish/output/*
+        prerelease: ${{ contains(github.ref, 'beta') }}
+        draft: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
