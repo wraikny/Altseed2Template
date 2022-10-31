@@ -20,7 +20,7 @@ Altseed2 向けプロジェクトテンプレート。
 ### Github Actionsでの配布用zip・dmgファイル自動生成
 タグをプッシュすると、
 WindowsとMacOSそれぞれで配布用ファイル生成して、
-リリースページからダウンロード可能。
+リリースページのDraftからダウンロード可能。
 
 生成されるファイル
 - Windows: `Project.exe`を含む`Project.win-x64.zip`
