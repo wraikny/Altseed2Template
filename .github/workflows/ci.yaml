@@ -16,11 +16,11 @@ jobs:
         os: [windows-latest, macOS-latest]
         include:
           - os: windows-latest
-            target: publish.win-x64
-            dist-target: dist.win-x64
+            target: publish.win
+            dist-target: dist.win
           - os: macOS-latest
-            publish-target: publish.osx-x64
-            dist-target: dist.osx-x64
+            publish-target: publish.osx
+            dist-target: dist.osx
 
     runs-on: ${{ matrix.os }}
 

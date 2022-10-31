@@ -1,23 +1,24 @@
+#if FAKE
 #r "paket:
 source https://api.nuget.org/v3/index.json
+storage: none
 nuget FSharp.Core >= 6.0
 nuget Fake.Core.Target
 nuget Fake.IO.FileSystem
 nuget Fake.DotNet.Cli
-nuget FAKE.IO.Zip
 nuget Fake.Net.Http
 nuget FSharp.Json //"
 
+#endif
+
 #load ".fake/build.fsx/intellisense.fsx"
+
+#r "netstandard"
 
 open Fake.Core
 open Fake.Core.TargetOperators
 open Fake.IO
 open Fake.IO.Globbing.Operators
-open Fake.DotNet
-open Fake.Net
-
-open FSharp.Json
 
 module private Params =
   // ターゲットのプロジェクト名を参照する
@@ -29,18 +30,23 @@ module private Params =
   // ターゲットのプロジェクトを参照する
   let PublishTarget = $"src/%s{ProjectName}/%s{ProjectName}.csproj"
 
-  // 指定したファイルの内容をリソースパッケージのパスワードとして利用する
-  let PasswordFilename = $"src/%s{ProjectName}/ResourcesPassword.txt"
+  module Resources =
 
-  // リソースパッケージのパス
-  let ResourcesPackagePath = "Resources.pack"
+    // 指定したファイルの内容をリソースパッケージのパスワードとして利用する
+    let PasswordPath = $"src/%s{ProjectName}/ResourcesPassword.txt"
 
-  // リソースパッケージのダウンロード先に指定するURL
-  let ResourcesPackageURL =
-    // Some @"https://example.com/foo/bar/ExampleResources.pack"
-    None
+    // リソースパッケージのパス
+    let PackagePath = "Resources.pack"
 
-  let PublishDirectory = "publish"
+    // リソースパッケージのダウンロード先に指定するURL
+    let DownloadUrl =
+      // Some @"https://example.com/foo/bar/ExampleResources.pack"
+      None
+
+  module Dist =
+    let WindowsZipName = $"%s{ProjectName}.win-x64.zip"
+
+    let MacOSDmgName = $"%s{ProjectName}.dmg"
 
   /// オートフォーマッターを使って自動整形する場合の対象を指定する
   module FormatTargets =
@@ -49,34 +55,18 @@ module private Params =
       ++ "tests/**/*.csproj"
 
     let fsharp =
-      !! "src/**/*.fs"
-      ++ "build.fsx"
+      !! "src/**/*.fs" ++ "build.fsx"
       -- "src/*/obj/**/*.fs"
       -- "src/*/bin/**/*.fs"
 
 
+open Fake.DotNet
+open Fake.Net
+open FSharp.Json
+
 [<AutoOpen>]
 module private Utils =
-  let dotnet cmd =
-    Printf.kprintf (fun arg ->
-      let res = DotNet.exec id cmd arg
-
-      if not res.OK then
-        let msg =
-          res.Messages
-          |> String.concat "\n"
-
-        failwithf "Failed to run 'dotnet %s %s' due to: %A" cmd arg msg
-    )
-
-  let shell (dir: string option) cmd =
-    Printf.kprintf (fun arg ->
-      let dir = dir |> Option.defaultValue "."
-      let res = Shell.Exec(cmd, arg, dir)
-
-      if res <> 0 then
-        failwithf "Failed to run '%s %s' at '%A'" cmd arg dir
-    )
+  let runtimeToPubDir (runtime: string) = sprintf "publish/%s" runtime
 
   let getConfiguration (input: string option) =
     input
@@ -87,14 +77,39 @@ module private Utils =
       | Some c -> failwithf "Invalid configuration '%s'" c
       | None -> DotNet.BuildConfiguration.Debug
 
-  let runtimeToPubDir (runtime: string) =
-    sprintf "%s/%s" Params.PublishDirectory runtime
+  let dotnet cmd =
+    Printf.kprintf (fun arg ->
+      let res = DotNet.exec id cmd arg
+
+      if not res.OK then
+        let msg = res.Messages |> String.concat "\n"
+
+        failwithf "Failed to run 'dotnet %s %s' due to: %A" cmd arg msg
+    )
+
+  let shell (dir: string option) cmd =
+    Printf.kprintf (fun arg ->
+      let dir = dir |> Option.defaultValue "."
+
+      let res = Shell.Exec(cmd, arg, dir)
+
+      if res <> 0 then
+        failwithf "Failed to run '%s %s' at '%A'" cmd arg dir
+    )
+
+module Zip =
+  open System.IO.Compression
+  open System.Text
+
+  let zipDirectory src dest =
+    ZipFile.CreateFromDirectory(src, dest, CompressionLevel.Optimal, true)
+
 
 Target.initEnvironment ()
 
 let args = Target.getArguments ()
 
-
+(* クリーンする *)
 
 Target.create
   "Clean"
@@ -109,7 +124,7 @@ Target.create
     |> Shell.cleanDirs
   )
 
-
+(* ビルドする *)
 
 Target.create
   "Build"
@@ -149,53 +164,79 @@ let publishForRuntime runtime =
                   p.MSBuildParams.Properties } }
   )
 
-Target.create "Publish.win-x64" (fun _ -> publishForRuntime "win-x64")
+Target.create "Publish.win" (fun _ -> publishForRuntime "win-x64")
 
-Target.create "Publish.osx-x64" (fun _ -> publishForRuntime "osx-x64")
+Target.create "Publish.osx" (fun _ -> publishForRuntime "osx-x64")
 
 Target.create "Publish" ignore
 
-"Publish.win-x64"
-==> "Publish"
+"Publish.win" ==> "Publish"
 
-"Publish.osx-x64"
-==> "Publish"
+"Publish.osx" ==> "Publish"
 
 
 
 (* 配布用にファイルをまとめる *)
 
 Target.create
-  "Dist.win-x64"
+  "LICENSES"
   (fun _ ->
-    if not
-       <| File.exists Params.ResourcesPackagePath then
-      failwithf "リソースパッケージ '%s' が見つかりません" Params.ResourcesPackagePath
-    
-    Directory.ensure Params.PublishDirectory
-
-    Shell.cp "dist/README.md" (runtimeToPubDir "win-x64")
-
-    // TODO
+    Directory.ensure "publish/licenses"
+    dotnet "dotnet-project-licenses" "--input %s --output-directory publish/licenses -e" Params.PublishTarget
   )
 
 Target.create
-  "Dist.osx-x64"
+  "Dist.win"
+  (fun _ ->
+    File.checkExists Params.Resources.PackagePath
+
+    let tempDirToZip = $"publish/temp/win-x64/%s{Params.ProjectName}"
+
+    let targetZipName = $"publish/%s{Params.Dist.WindowsZipName}"
+
+    // clean
+    File.delete targetZipName
+    Directory.delete tempDirToZip
+
+    Directory.ensure tempDirToZip
+
+    Shell.cp_r $"dist/contents" $"%s{tempDirToZip}/"
+
+    Shell.cp_r "publish/licenses" $"%s{tempDirToZip}/licenses"
+    Shell.cp_r (runtimeToPubDir "win-x64") tempDirToZip
+
+  // Zip.zipDirectory tempDirToZip targetZipName
+  )
+
+Target.create
+  "Dist.osx"
   (fun _ ->
     if not
-       <| File.exists Params.ResourcesPackagePath then
-      failwithf "リソースパッケージ '%s' が見つかりません" Params.ResourcesPackagePath
+       <| File.exists Params.Resources.PackagePath then
+      failwithf "リソースパッケージ '%s' が見つかりません" Params.Resources.PackagePath
 
-    let appDir = $"%s{Params.PublishDirectory}/%s{Params.AssemblyName}"
-    let scriptDir = $"%s{appDir}/Contents/MacOS"
+    let tempDirToDmg = $"publish/temp/osx-x64/%s{Params.ProjectName}"
+
+    let tempDirToApp = $"%s{tempDirToDmg}/%s{Params.ProjectName}"
+    let scriptDir = $"%s{tempDirToApp}/Contents/MacOS"
+    let resourceDir = $"%s{tempDirToApp}/Contents/Resources"
     let scriptPath = $"%s{scriptDir}/script.sh"
 
-    Directory.ensure appDir
+    let targetDmgName = $"publish/%s{Params.Dist.MacOSDmgName}"
 
-    Shell.cp_r "dist/App" appDir
+    // clean
+    Directory.delete tempDirToApp
+    Directory.delete tempDirToDmg
+    File.delete targetDmgName
 
-    if not
-       <| File.exists scriptPath then
+    Directory.ensure tempDirToApp
+
+    Shell.cp_r $"dist/contents" $"%s{tempDirToDmg}/"
+    Shell.cp_r "publish/licenses" $"%s{resourceDir}/licenses"
+
+    Shell.cp_r "dist/App" tempDirToApp
+
+    if not <| File.exists scriptPath then
       File.create scriptPath
 
     $"""#!/bin/bash
@@ -206,21 +247,17 @@ $"./%s{Params.AssemblyName}
 
     Shell.cp_r (runtimeToPubDir "osx-x64") scriptDir
 
-    !! $"%s{appDir}/**/.gitkeep"
+    !! $"%s{tempDirToApp}/**/.gitkeep"
     |> Seq.iter Shell.rm
 
     shell None "chmod" "+x %s/%s" scriptDir Params.AssemblyName
     shell None "chmod" "+x %s" scriptPath
 
-    let appPath = appDir + ".app"
+    let appPath = tempDirToApp + ".app"
 
-    Shell.mv appDir appPath
+    Shell.mv tempDirToApp appPath
 
-    // TODO: make dmg
-
-    
-
-    Shell.rm_rf appPath
+    shell None "hdiutil" "create %s -volname \"%s\" -srcfolder \"%s\"" targetDmgName Params.ProjectName tempDirToDmg
   )
 
 
@@ -261,17 +298,13 @@ Target.create "Format"
 
 Target.create "Format.Check"
 
-(* dotnet-format を使用してC#コードをフォーマットする場合は以下をコメントアウトする *)
-// "Format.CSharp"
-// ==> "Format"
-// "Format.Check.CSharp"
-// ==> "Format.Check"
+(* dotnet-format を使用してC#コードをフォーマットする場合 *)
+// "Format.CSharp" ==> "Format"
+// "Format.Check.CSharp" ==> "Format.Check"
 
-(* fantomas を使用してF#コードをフォーマットする場合は以下をコメントアウトする *)
-// "Format.FSharp"
-// ==> "Format"
-// "Format.Check.FSharp"
-// ==> "Format.Check"
+(* fantomas を使用してF#コードをフォーマットする場合 *)
+// "Format.FSharp" ==> "Format"
+// "Format.Check.FSharp" ==> "Format.Check"
 
 
 
@@ -297,34 +330,31 @@ Target.create
 Target.create
   "Resources.Pack"
   (fun _ ->
-    let password = File.readAsString Params.PasswordFilename
+    let password = File.readAsString Params.Resources.PasswordPath
 
     // Altseed2.Tools (.NETツール) http://altseed.github.io/Manual/CLITool.html
-    dotnet "altseed2" "file -s ./Resources -o %s -p %s" Params.ResourcesPackagePath password
+    dotnet "altseed2" "file -s ./Resources -o %s -p %s" Params.Resources.PackagePath password
   )
 
 // パッケージファイルをダウンロードする
-Target.create
-  "Resources.Download"
-  (fun _ ->
-    Params.ResourcesPackageURL
-    |> Option.filter (
-      String.isNotNullOrEmpty
-      >> not
-    )
-    |> Option.iter (fun url ->
-      Http.downloadFile Params.ResourcesPackagePath url
+Params.Resources.DownloadUrl
+|> Option.filter (String.isNotNullOrEmpty >> not)
+|> Option.iter (fun url ->
+  Target.create
+    "Resources.Download"
+    (fun _ ->
+      Http.downloadFile Params.Resources.PackagePath url
       |> ignore
     )
-  )
+)
 
 // CIでリソースファイルをどのように入手するか指定したい。
 Target.create "Resources.CI" ignore
 
-(* CIで直接 `Resources.pack` を作る場合は以下をコメントアウトする *)
-// "Resources.Pack" ==> "Resources.CI"
+(* CIで直接 `Resources.pack` を作る場合 *)
+"Resources.Pack" ==> "Resources.CI"
 
-(* CIでリソースパッケージをダウンロードする場合は以下をコメントアウトする *)
+(* CIでリソースパッケージをダウンロードする場合 *)
 // "Resources.Download" ==> "Resources.CI"
 
 

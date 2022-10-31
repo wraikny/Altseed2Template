@@ -1,44 +1,38 @@
 # Fake
 
-## Restore Fake
+ビルドスクリプトに [FAKE](https://fake.build/) を使用している。
 
-```sh
-dotnet tool restore
-```
-
-## Format
+## Dev Targets
+### Format
 
 ```sh
 dotnet fake build -t format
 ```
 
-## Clean
+### Clean
 
 ```sh
 dotnet fake build -t clean
 ```
 
-## Build
+### Build
 
 ```sh
 dotnet fake build [-- <DEBUG|RELEASE>]
 ```
 
-## Publish
+### Pack Resource
 
-```sh
-dotnet fake build -t publish
-```
+`ResourcesPassword.txt`ファイルからパスワードを読み込む。
+実行プロジェクトに埋め込むことで、パスワードの指定を共通化して自動化している。
 
-## Pack Resource
-
-パスワードは ``
+実際は `.gitignore` に追加して、CIでは`Resources.pack`をクラウドストレージからダウンロードするという方法もある。
 
 ```sh
 dotnet fake build -t resources.pack
 ```
 
-## Update .NET local tools
+### Update .NET local tools
 
 ```sh
 dotnet fake build -t tool.update
@@ -52,4 +46,40 @@ dotnet fake build -t tool.update
 rm build.fsx.lock
 rm -r ./.fake
 dotnet fake build
+```
+
+## 配布
+
+### ライセンスファイルについて
+
+```sh
+dotnet fake build -t licenses
+```
+
+を実行すると、`dotnet-project-licenses`を利用して`publish/licenses`以下に依存ライブラリのライセンスファイルが自動生成される。
+
+## Publish
+
+```sh
+# Windows
+dotnet fake build -t publish.win
+
+# MacOS
+dotnet fake build -t publish.osx
+
+# まとめて
+dotnet fake build -t publish
+```
+
+## 配布用ファイル作成
+
+これは各OSでしかできないので、CIでの実行を推奨。
+なお、あらかじめライセンスを生成しておく。
+
+```sh
+# Windows
+dotnet fake build -t dist.win
+
+# MacOS
+dotnet fake build -t dist.osx
 ```
