@@ -258,11 +258,6 @@ cd `dirname $0`
 
       Shell.cp_r (runtimeToPubDir "osx-x64") scriptDir
 
-    Trace.tracefn "Changing mode"
-    do
-      shell None "chmod" "+x %s/%s" scriptDir Params.AssemblyName
-      shell None "chmod" "+x %s" scriptPath
-
     Trace.tracefn "Creating dmg"
     do shell None "hdiutil" "create %s -volname \"%s\" -srcfolder \"%s\"" targetDmgName Params.ProjectName tempDirToDmg
   )
