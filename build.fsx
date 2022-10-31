@@ -247,9 +247,6 @@ $"./%s{Params.AssemblyName}
 
     Shell.cp_r (runtimeToPubDir "osx-x64") scriptDir
 
-    !! $"%s{tempDirToApp}/**/.gitkeep"
-    |> Seq.iter Shell.rm
-
     shell None "chmod" "+x %s/%s" scriptDir Params.AssemblyName
     shell None "chmod" "+x %s" scriptPath
 
