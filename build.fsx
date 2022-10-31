@@ -38,10 +38,8 @@ module private Params =
     // リソースパッケージのパス
     let PackagePath = "Resources.pack"
 
-    // リソースパッケージのダウンロード先に指定するURL
-    let DownloadUrl =
-      // Some @"https://example.com/foo/bar/ExampleResources.pack"
-      None
+    // リソースパッケージのダウンロード先に指定するURLを格納した環境変数
+    let DownloadUrlEnv = "RESOURCES_DOWNLOAD_URL"
 
   module Dist =
     let WindowsZipName = $"%s{ProjectName}.win-x64.zip"
@@ -192,20 +190,21 @@ Target.create
 
     let tempDirToZip = $"publish/temp/win-x64/%s{Params.ProjectName}"
 
-    let targetZipName = $"publish/%s{Params.Dist.WindowsZipName}"
+    let targetZipName = $"publish/output/%s{Params.Dist.WindowsZipName}"
 
     // clean
     File.delete targetZipName
     Directory.delete tempDirToZip
 
     Directory.ensure tempDirToZip
+    Directory.ensure "publish/output"
 
     Shell.cp_r $"dist/contents" $"%s{tempDirToZip}/"
 
     Shell.cp_r "publish/licenses" $"%s{tempDirToZip}/licenses"
     Shell.cp_r (runtimeToPubDir "win-x64") tempDirToZip
 
-  // Zip.zipDirectory tempDirToZip targetZipName
+    Zip.zipDirectory tempDirToZip targetZipName
   )
 
 Target.create
@@ -222,7 +221,7 @@ Target.create
     let resourceDir = $"%s{tempDirToApp}/Contents/Resources"
     let scriptPath = $"%s{scriptDir}/script.sh"
 
-    let targetDmgName = $"publish/%s{Params.Dist.MacOSDmgName}"
+    let targetDmgName = $"publish/output/%s{Params.Dist.MacOSDmgName}"
 
     // clean
     Directory.delete tempDirToApp
@@ -230,6 +229,7 @@ Target.create
     File.delete targetDmgName
 
     Directory.ensure tempDirToApp
+    Directory.ensure "publish/output"
 
     Shell.cp_r $"dist/contents" $"%s{tempDirToDmg}/"
     Shell.cp_r "publish/licenses" $"%s{resourceDir}/licenses"
@@ -337,18 +337,15 @@ Target.create
   )
 
 // パッケージファイルをダウンロードする
-Params.Resources.DownloadUrl
-|> Option.filter (String.isNotNullOrEmpty >> not)
-|> Option.iter (fun url ->
-  Target.create
-    "Resources.Download"
-    (fun _ ->
-      Http.downloadFile Params.Resources.PackagePath url
-      |> ignore
-    )
-)
 
-// CIでリソースファイルをどのように入手するか指定したい。
+Target.create
+  "Resources.Download"
+  (fun _ ->
+    let url = Environment.environVar Params.Resources.DownloadUrlEnv
+    Http.downloadFile Params.Resources.PackagePath url
+    |> ignore
+  )
+
 Target.create "Resources.CI" ignore
 
 (* CIで直接 `Resources.pack` を作る場合 *)
