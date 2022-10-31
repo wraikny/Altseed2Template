@@ -11,14 +11,36 @@ Altseed2 向けプロジェクトテンプレート。
 ## 機能
 
 - ビルドスクリプト設定済み
-  - ライセンスファイル自動生成
+  - 依存パッケージのライセンスファイル自動生成
   - `Resources.pack`生成
-  - CIでは`Resources.pack`をクラウドストレージ等からダウンロードする設定も可
 
 - GitHub Actions設定済み
+  - 通常のプッシュとPRでは、フォーマットチェックとビルド
   - タグをプッシュすると、WindowsとMacOSそれぞれで配布用ファイル生成して、リリースページのドラフトからダウンロード可能
-    - Windows: exeが含むzip
-    - MacOS: appを含むdmg
+    - 生成されるファイル
+      - Windows: exeを含むzip
+      - MacOS: appを含むdmg
+    - `Resources.pack`をクラウドストレージ等からダウンロードする設定も可
 
 - [dist/contents](/dist/contents/)ディレクトリ以下のファイルを自動的に配布先に同梱
-  - 日本語ファイル名使えないですごめんなさい
+  - 注意: 日本語ファイル名を使うと、zipする際に文字化けします
+
+- フォーマット用のビルドスクリプト・CIは記述済みなので、対応するツールをインストールしてビルドスクリプトのコメントアウトを外せば利用可能
+
+## .NET ツール （開発環境）
+
+- FAKE
+- dotnet-project-licenses
+- altseed2.tools
+
+[dotnet-tools.json](/.config/dotnet-tools.json)に記載されている。
+
+最初に次のコマンドを実行する必要がある。
+
+```sh
+dotnet tool restore
+```
+
+## ビルドコマンド
+
+- [FAKE](./fake.md)

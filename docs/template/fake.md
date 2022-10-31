@@ -3,36 +3,47 @@
 ビルドスクリプトに [FAKE](https://fake.build/) を使用している。
 
 ## Dev Targets
-### Format
-
-```sh
-dotnet fake build -t format
-```
 
 ### Clean
+ビルドした出力物を削除する
 
 ```sh
 dotnet fake build -t clean
 ```
 
 ### Build
+ビルドする。
 
 ```sh
 dotnet fake build [-- <DEBUG|RELEASE>]
 ```
 
 ### Pack Resource
+`Resources`ディレクトリから`Resources.pack`を作成する。
 
 `ResourcesPassword.txt`ファイルからパスワードを読み込む。
 実行プロジェクトに埋め込むことで、パスワードの指定を共通化して自動化している。
 
-実際は `.gitignore` に追加して、CIでは`Resources.pack`をクラウドストレージからダウンロードするという方法もある。
+`.gitignore` に追加して、CIでは`Resources.pack`をクラウドストレージからダウンロードするという方法もある。
+[build.fsx](/build.fsx)の`"Resources.CI"`ターゲットを参照。
 
 ```sh
 dotnet fake build -t resources.pack
 ```
 
+### Format
+
+各自でオートフォーマッターをインストールすることで有効になる。
+
+[build.fsx](/build.fsx)の`"Format"`ターゲットを参照。
+
+```sh
+dotnet fake build -t format
+```
+
 ### Update .NET local tools
+
+プロジェクトローカルの.NETツールをすべてアップデートする。
 
 ```sh
 dotnet fake build -t tool.update
@@ -40,7 +51,7 @@ dotnet fake build -t tool.update
 
 ## Update build.fsx.lock
 
-`build.fsx`上部で新しいライブラリを追加した際などに。
+`build.fsx`に新しいライブラリを追加した際や、バージョンの更新を行う場合に。
 
 ```sh
 rm build.fsx.lock
@@ -49,6 +60,8 @@ dotnet fake build
 ```
 
 ## 配布
+
+Github Actionsに設定済みなので、タグをプッシュするだけでReleaseのDraftが作られてファイルをダウンロード可能になります。
 
 ### ライセンスファイルについて
 
@@ -74,7 +87,6 @@ dotnet fake build -t publish
 ## 配布用ファイル作成
 
 これは各OSでしかできないので、CIでの実行を推奨。
-なお、あらかじめライセンスを生成しておく。
 
 ```sh
 # Windows

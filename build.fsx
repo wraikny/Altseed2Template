@@ -304,11 +304,13 @@ Target.create "Format" ignore
 
 Target.create "Format.Check" ignore
 
-(* dotnet-format を使用してC#コードをフォーマットする場合 *)
+(* dotnet-format を使用してC#コードをフォーマットする場合
+   `dotnet tool install dotnet-format` が必要 *)
 // "Format.CSharp" ==> "Format"
 // "Format.Check.CSharp" ==> "Format.Check"
 
-(* fantomas を使用してF#コードをフォーマットする場合 *)
+(* fantomas を使用してF#コードをフォーマットする場合
+   `dotnet tool install fantomas-tool` が必要 *)
 // "Format.FSharp" ==> "Format"
 // "Format.Check.FSharp" ==> "Format.Check"
 
