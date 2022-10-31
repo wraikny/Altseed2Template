@@ -294,9 +294,9 @@ Target.create
     |> dotnet "fantomas" "--check %s"
   )
 
-Target.create "Format"
+Target.create "Format" ignore
 
-Target.create "Format.Check"
+Target.create "Format.Check" ignore
 
 (* dotnet-format を使用してC#コードをフォーマットする場合 *)
 // "Format.CSharp" ==> "Format"
