@@ -11,6 +11,8 @@ Altseed2 向けプロジェクトテンプレート。
 [FAKE](https://fake.build/)を利用してビルドスクリプトを記述している。
 詳細は[fake.md](/docs//template/fake.md)を参照。
 
+[build.fsx#L25](/build.fsx#L25)にプロジェクト名指定してください。
+
 ### Github Actions
 
 プッシュ・PR時にフォーマットチェックとビルドを行う。
