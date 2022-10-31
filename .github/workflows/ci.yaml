@@ -36,14 +36,8 @@ jobs:
     - uses: actions/cache@v3
       with:
         path: ~/.nuget/packages
-        key: ${{ runner.os }}-nuget-${{ hashFiles('**/packages.lock.json') }}
-        restore-keys: ${{ runner.os }}-nuget-
-
-    - uses: actions/cache@v3
-      with:
-        path: ~/.fake
-        key: ${{ runner.os }}-fake-${{ hashFiles('build.fsx.lock') }}
-        restore-keys: ${{ runner.os }}-fake-
+        key: nuget-${{ hashFiles('**/packages.lock.json', 'build.fsx.lock') }}
+        restore-keys: nuget-
 
     - name: Restore tool
       run: dotnet tool restore
