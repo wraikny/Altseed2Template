@@ -4,28 +4,35 @@
 
 # Altseed2Template
 
-Altseed2 向けプロジェクトテンプレート。  
-
-[ドキュメント](docs/template/)
+Altseed2 向けプロジェクトテンプレート。
 
 ## 機能
 
-- ビルドスクリプト設定済み
-  - 依存パッケージのライセンスファイル自動生成
-  - `Resources.pack`生成
+[FAKE](https://fake.build/)を利用してビルドスクリプトを記述している。
+詳細は[fake.md](/docs//template/fake.md)を参照。
 
-- GitHub Actions設定済み
-  - 通常のプッシュとPRでは、フォーマットチェックとビルド
-  - タグをプッシュすると、WindowsとMacOSそれぞれで配布用ファイル生成して、リリースページのドラフトからダウンロード可能
-    - 生成されるファイル
-      - Windows: exeを含むzip
-      - MacOS: appを含むdmg
-    - `Resources.pack`をクラウドストレージ等からダウンロードする設定も可
+### Github Actions
 
-- [dist/contents](/dist/contents/)ディレクトリ以下のファイルを自動的に配布先に同梱
-  - 注意: 日本語ファイル名を使うと、zipする際に文字化けします
+プッシュ・PR時にフォーマットチェックとビルドを行う。
 
-- フォーマット用のビルドスクリプト・CIは記述済みなので、対応するツールをインストールしてビルドスクリプトのコメントアウトを外せば利用可能
+フォーマッターの有効化は[build.fsx#L304](/build.fsx#L304)を参照。
+
+### Github Actionsでの配布用zip・dmgファイル自動生成
+タグをプッシュすると、
+WindowsとMacOSそれぞれで配布用ファイル生成して、
+リリースページからダウンロード可能。
+
+生成されるファイル
+- Windows: `Project.exe`を含む`Project.win-x64.zip`
+- MacOS: `Project.app`を含む`Project.osx-x64.dmg`
+
+`Resources.pack`をCIで生成せず、
+クラウドストレージ等からダウンロードしたい場合は
+[build.fsx](/build.fsx#L367)を参照。
+
+[dist/contents](/dist/contents/)ディレクトリ以下のファイルを自動的に同梱
+（日本語ファイル名はzip化の際に文字化けします）
+
 
 ## .NET ツール （開発環境）
 
@@ -41,6 +48,3 @@ Altseed2 向けプロジェクトテンプレート。
 dotnet tool restore
 ```
 
-## ビルドコマンド
-
-- [FAKE](./fake.md)

@@ -43,6 +43,8 @@ jobs:
 
     - name: Get Resources package
       run: dotnet fake build -t resources.ci
+      env:
+        RESOURCES_DOWNLOAD_URL: ${{ secrets.RESOURCES_DOWNLOAD_URL }}
 
     - name: Build for Publish
       run: dotnet fake build -t ${{ matrix.publish-target }}

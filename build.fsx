@@ -38,13 +38,10 @@ module private Params =
     // リソースパッケージのパス
     let PackagePath = "Resources.pack"
 
-    // リソースパッケージのダウンロード先に指定するURLを格納した環境変数
-    let DownloadUrlEnv = "RESOURCES_DOWNLOAD_URL"
-
   module Dist =
     let WindowsZipName = $"%s{ProjectName}.win-x64.zip"
 
-    let MacOSDmgName = $"%s{ProjectName}.dmg"
+    let MacOSDmgName = $"%s{ProjectName}.osx-x64.dmg"
 
   /// オートフォーマッターを使って自動整形する場合の対象を指定する
   module FormatTargets =
@@ -304,15 +301,23 @@ Target.create "Format" ignore
 
 Target.create "Format.Check" ignore
 
-(* dotnet-format を使用してC#コードをフォーマットする場合
-   `dotnet tool install dotnet-format` が必要 *)
-// "Format.CSharp" ==> "Format"
-// "Format.Check.CSharp" ==> "Format.Check"
+(*
+  dotnet-format を使用してC#コードをフォーマットする場合、
+  `dotnet tool install dotnet-format` を実行した上で、
+  下記のコメントアウトを外す
 
-(* fantomas を使用してF#コードをフォーマットする場合
-   `dotnet tool install fantomas-tool` が必要 *)
-// "Format.FSharp" ==> "Format"
-// "Format.Check.FSharp" ==> "Format.Check"
+"Format.CSharp" ==> "Format"
+"Format.Check.CSharp" ==> "Format.Check"
+*)
+
+(*
+  fantomas を使用してF#コードをフォーマットする場合、
+  `dotnet tool install fantomas-tool` を実行した上で、
+  下記のコメントアウトを外す
+
+"Format.FSharp" ==> "Format"
+"Format.Check.FSharp" ==> "Format.Check"
+*)
 
 
 
@@ -349,7 +354,7 @@ Target.create
 Target.create
   "Resources.Download"
   (fun _ ->
-    let url = Environment.environVar Params.Resources.DownloadUrlEnv
+    let url = Environment.environVar "RESOURCES_DOWNLOAD_URL"
     Http.downloadFile Params.Resources.PackagePath url
     |> ignore
   )
@@ -359,8 +364,13 @@ Target.create "Resources.CI" ignore
 (* CIで直接 `Resources.pack` を作る場合 *)
 "Resources.Pack" ==> "Resources.CI"
 
-(* CIでリソースパッケージをダウンロードする場合 *)
-// "Resources.Download" ==> "Resources.CI"
+(*
+  CIでリソースパッケージをダウンロードする場合、
+  GitHubリポジトリのSettingsから、secretsに`RESOURCES_DOWNLOAD_URL`を追加して、
+  以下のコメントを外す
+
+"Resources.Download" ==> "Resources.CI"
+*)
 
 
 // 何もしないターゲット
