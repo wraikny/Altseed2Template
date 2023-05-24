@@ -1,24 +1,25 @@
-#if FAKE
-#r "paket:
-source https://api.nuget.org/v3/index.json
-storage: none
-nuget FSharp.Core >= 6.0
-nuget Fake.Core.Target
-nuget Fake.IO.FileSystem
-nuget Fake.DotNet.Cli
-nuget Fake.Net.Http
-nuget FSharp.Json //"
-
-#endif
-
-#load ".fake/build.fsx/intellisense.fsx"
+#!dotnet fsi
 
 #r "netstandard"
+#r "nuget: Fake.Core"
+#r "nuget: Fake.Core.Target"
+#r "nuget: Fake.IO.FileSystem"
+#r "nuget: Fake.DotNet.Cli"
+#r "nuget: Fake.Net.Http"
+#r "nuget: FSharp.Json"
 
 open Fake.Core
 open Fake.Core.TargetOperators
 open Fake.IO
 open Fake.IO.Globbing.Operators
+
+// Boilerplate
+System.Environment.GetCommandLineArgs()
+|> Array.skip 2 // skip fsi.exe; build.fsx
+|> Array.toList
+|> Context.FakeExecutionContext.Create false __SOURCE_FILE__
+|> Context.RuntimeContext.Fake
+|> Context.setExecutionContext
 
 module private Params =
   // ターゲットのプロジェクト名を参照する

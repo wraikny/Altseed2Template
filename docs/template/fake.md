@@ -8,14 +8,14 @@
 ビルドした出力物を削除する
 
 ```sh
-dotnet fake build -t clean
+./build.fsx -t clean
 ```
 
 ### Build
 ビルドする。
 
 ```sh
-dotnet fake build [-- <DEBUG|RELEASE>]
+./build.fsx [-- <DEBUG|RELEASE>]
 ```
 
 ### Pack Resource
@@ -28,7 +28,7 @@ dotnet fake build [-- <DEBUG|RELEASE>]
 [build.fsx](/build.fsx)の`"Resources.CI"`ターゲットを参照。
 
 ```sh
-dotnet fake build -t resources.pack
+./build.fsx -t resources.pack
 ```
 
 ### Format
@@ -38,7 +38,7 @@ dotnet fake build -t resources.pack
 [build.fsx](/build.fsx)の`"Format"`ターゲットを参照。
 
 ```sh
-dotnet fake build -t format
+./build.fsx -t format
 ```
 
 ### Update .NET local tools
@@ -46,7 +46,7 @@ dotnet fake build -t format
 プロジェクトローカルの.NETツールをすべてアップデートする。
 
 ```sh
-dotnet fake build -t tool.update
+./build.fsx -t tool.update
 ```
 
 ## Update build.fsx.lock
@@ -56,7 +56,7 @@ dotnet fake build -t tool.update
 ```sh
 rm build.fsx.lock
 rm -r ./.fake
-dotnet fake build
+./build.fsx
 ```
 
 ## 配布
@@ -66,7 +66,7 @@ Github Actionsに設定済みなので、タグをプッシュするだけでRel
 ### ライセンスファイルについて
 
 ```sh
-dotnet fake build -t licenses
+./build.fsx -t licenses
 ```
 
 を実行すると、`dotnet-project-licenses`を利用して`publish/licenses`以下に依存ライブラリのライセンスファイルが自動生成される。
@@ -75,13 +75,13 @@ dotnet fake build -t licenses
 
 ```sh
 # Windows
-dotnet fake build -t publish.win
+./build.fsx -t publish.win
 
 # MacOS
-dotnet fake build -t publish.osx
+./build.fsx -t publish.osx
 
 # まとめて
-dotnet fake build -t publish
+./build.fsx -t publish
 ```
 
 ## 配布用ファイル作成
@@ -90,8 +90,8 @@ dotnet fake build -t publish
 
 ```sh
 # Windows
-dotnet fake build -t dist.win
+./build.fsx -t dist.win
 
 # MacOS
-dotnet fake build -t dist.osx
+./build.fsx -t dist.osx
 ```

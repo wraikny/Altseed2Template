@@ -2,12 +2,6 @@
   "version": 1,
   "isRoot": true,
   "tools": {
-    "fake-cli": {
-      "version": "5.23.1",
-      "commands": [
-        "fake"
-      ]
-    },
     "altseed2.tools": {
       "version": "2.2.1",
       "commands": [
@@ -15,7 +9,7 @@
       ]
     },
     "dotnet-project-licenses": {
-      "version": "2.4.0",
+      "version": "2.7.1",
       "commands": [
         "dotnet-project-licenses"
       ]

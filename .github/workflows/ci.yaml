@@ -22,7 +22,7 @@ jobs:
 
     - uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 7.x.x
 
     - uses: actions/cache@v3
       with:
@@ -34,10 +34,10 @@ jobs:
       run: dotnet tool restore
 
     - name: Restore fake
-      run: dotnet fake build -t Nothing
+      run: dotnet fsi build.fsx -t Nothing
 
     - name: Check Format
-      run: dotnet fake build -t format.check
+      run: dotnet fsi build.fsx -t format.check
 
     - name: Build (Debug)
       run: dotnet build -c Debug

@@ -27,7 +27,7 @@ jobs:
 
     - uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 6.0.x
+        dotnet-version: 7.x.x
 
     - uses: actions/cache@v3
       with:
@@ -39,21 +39,21 @@ jobs:
       run: dotnet tool restore
 
     - name: Restore fake
-      run: dotnet fake build -t Nothing
+      run: dotnet fsi build.fsx -t Nothing
 
     - name: Get Resources package
-      run: dotnet fake build -t resources.ci
+      run: dotnet fsi build.fsx -t resources.ci
       env:
         RESOURCES_DOWNLOAD_URL: ${{ secrets.RESOURCES_DOWNLOAD_URL }}
 
     - name: Build for Publish
-      run: dotnet fake build -t ${{ matrix.publish-target }}
+      run: dotnet fsi build.fsx -t ${{ matrix.publish-target }}
 
     - name: Generate LICENSES
-      run: dotnet fake build -t licenses
+      run: dotnet fsi build.fsx -t licenses
 
     - name: Dist
-      run: dotnet fake build -t ${{ matrix.dist-target }}
+      run: dotnet fsi build.fsx -t ${{ matrix.dist-target }}
 
     - name: Release
       uses: softprops/action-gh-release@v1
