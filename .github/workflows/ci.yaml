@@ -27,17 +27,14 @@ jobs:
     - uses: actions/cache@v3
       with:
         path: ~/.nuget/packages
-        key: nuget-${{ hashFiles('**/packages.lock.json', 'build.fsx.lock') }}
+        key: nuget-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: nuget-
 
     - name: Restore tool
       run: dotnet tool restore
 
-    - name: Restore fake
-      run: dotnet fsi build.fsx -t Nothing
-
     - name: Check Format
       run: dotnet fsi build.fsx -t format.check
 
     - name: Build (Debug)
-      run: dotnet build -c Debug
+      run: dotnet fsi build.fsx -t build -- Debug

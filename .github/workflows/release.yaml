@@ -32,14 +32,11 @@ jobs:
     - uses: actions/cache@v3
       with:
         path: ~/.nuget/packages
-        key: nuget-${{ hashFiles('**/packages.lock.json', 'build.fsx.lock') }}
+        key: nuget-${{ hashFiles('**/packages.lock.json') }}
         restore-keys: nuget-
 
     - name: Restore tool
       run: dotnet tool restore
-
-    - name: Restore fake
-      run: dotnet fsi build.fsx -t Nothing
 
     - name: Get Resources package
       run: dotnet fsi build.fsx -t resources.ci

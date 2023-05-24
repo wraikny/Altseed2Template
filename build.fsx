@@ -374,8 +374,4 @@ Target.create "Resources.CI" ignore
 *)
 
 
-// 何もしないターゲット
-Target.create "Nothing" ignore
-
-
 Target.runOrDefaultWithArguments "Build"
