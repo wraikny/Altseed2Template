@@ -313,7 +313,7 @@ Target.create "Format.Check" ignore
 
 (*
   fantomas を使用してF#コードをフォーマットする場合、
-  `dotnet tool install fantomas-tool` を実行した上で、
+  `dotnet tool install fantomas` を実行した上で、
   下記のコメントアウトを外す
 
 "Format.FSharp" ==> "Format"
