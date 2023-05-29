@@ -1,6 +1,7 @@
 #!dotnet fsi
 
 #r "netstandard"
+#r "nuget: MSBuild.StructuredLogger"
 #r "nuget: Fake.Core"
 #r "nuget: Fake.Core.Target"
 #r "nuget: Fake.IO.FileSystem"
@@ -152,8 +153,7 @@ let publishForRuntime runtime =
               DisableInternalBinLog = true
               Properties =
                 List.append
-                  [ "OutputType", "WinExe"
-                    "PublishSingleFile", "true"
+                  [ "PublishSingleFile", "true"
                     "PublishTrimmed", "true"
                     "DebugSymbols", "false"
                     "DebugType", "None" ]
